@@ -1,0 +1,5 @@
+Hola profe!
+Para ejecutar el codigo depende de 
+
+
+sympy numpy matplotlib 

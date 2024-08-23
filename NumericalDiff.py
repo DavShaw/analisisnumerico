@@ -133,10 +133,6 @@ class NumericalDiff:
         continue
       elif type == "+":
         xi = self.__eulerForward(h, xi, func)
-      elif type == "-":
-        xi = self.__eulerBackward(h, xi, func)
-      else :
-        raise Exception("Invalid type")
-      iterations[i] = float(xi) if exact else round(float(xi), 3)
-    return json.dumps(iterations, indent=2)
+        iterations[i] = xi
+    return iterations
   
