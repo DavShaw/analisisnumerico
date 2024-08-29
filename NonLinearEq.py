@@ -1,4 +1,5 @@
 import sympy as sp
+from helper import findInterval
 
 class NonLinearEquation:
   def __init__(self, f):
@@ -64,7 +65,6 @@ class NonLinearEquation:
     while True:
       c = (a*fb - b*fa) / (fb-fa)
       fc = self.f.subs(self.x, c)
-
       if abs(fc) <= error:
         if not getIterations:
           return float(c)
@@ -72,7 +72,6 @@ class NonLinearEquation:
       if self.__mediumTheorem(a, c):
         b = c
         fb = fc
-
       else:
         a = c
         fa = fc
@@ -80,6 +79,31 @@ class NonLinearEquation:
       iterations += 1
         
 if __name__ == "__main__":
-  f = lambda x: x**2 - 2
-  solver = NonLinearEquation(f)
-  error = 1e-5
+  def solv():
+    # interval
+    a, b = 0,0
+
+    # error
+    error = 1e-5
+
+    # var - constantes
+    g = 32.17
+    t = 1
+    motion = 1.7
+
+    omg = sp.symbols('x')
+    xt = (-g / (2 * omg**2)) * (((sp.exp(omg * t) - sp.exp(-omg * t)) / 2) - sp.sin(omg * t))
+
+    f = lambda omgvar: xt.subs(omg, omgvar).evalf() - motion
+
+    a,b = findInterval(f, -10, 10, 0.1)
+
+    solver = NonLinearEquation(f)
+
+    bsolve = solver.bisect(a, b, error, True)
+    fsolve = solver.fakePosition(a, b, error, True)
+
+    print(f'Bisec.: {bsolve[0]} in {bsolve[1]} ite.')
+    print(f'Falsa p.: {fsolve[0]} in {fsolve[1]} ite.')
+
+  solv()
