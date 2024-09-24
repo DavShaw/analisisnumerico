@@ -5,6 +5,11 @@ class Matrix:
   def __init__(self, a):
     self.a = a
     
+  def append(self, b):
+    a = self.a
+    A = np.insert(a,a.shape[0],b,1)
+    self.a = A
+    
   def getRow(self,n):
     if n > (len(self.a)-1):
       raise IndexError("Out of the range")
