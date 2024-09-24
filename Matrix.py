@@ -115,7 +115,46 @@ class Matrix:
     
   def printSolution(self):
     x = self.__getSolutions()
+    
     print(x)
     
+    
+    
+"""
+
+import numpy as np
+import time
+
+A = np.array([[1,1], [1,5]])
+b = np.array([56.5,113.0])
+tol = 1e-6
+x0 = np.zeros(len(b))
+
+def Jacobi_Mx_sum(A, b, x0, tol):
+    n = len(b)
+    x1 = np.zeros(n)
+    count = 0
+    diff = tol + 1
+    start_time = time.time()
+
+    while diff > tol:
+        count += 1
+        x_nuevo = np.zeros(n)
+        for i in range(n):
+            suma = np.dot(A[i, :], x0) - A[i, i] * x0[i]
+            x_nuevo[i] = (b[i] - suma) / A[i, i]
+        diff = np.max(abs(x_nuevo - x0))
+        x0 = x_nuevo
+    end_time = time.time()
+
+    print("iteraciones:", count)
+    print("timepo:", end_time - start_time)
+    return x0
+
+Jacobi_Mx_sum(A, b, x0, tol)
+
+
+    
+"""
 
   
