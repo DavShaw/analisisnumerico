@@ -7,6 +7,6 @@ if __name__ == '__main__':
   A = np.insert(a,a.shape[0],b,1)
   A = Matrix.Matrix(A)
   x0 = np.zeros(len(b))
-  r = A.jacobiSum((10**(-2)),x0, limit=10000000)
+  r = A.jacobiSum((10**(-25)),x0, limit=10000000000)
   print(r)
   print(np.dot(a,r)-b)

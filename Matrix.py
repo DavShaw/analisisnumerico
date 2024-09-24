@@ -46,25 +46,42 @@ class Matrix:
       x[i] = (self.a[i, n] - np.dot(self.a[i, i+1:n], x[i+1:n]))/self.a[i,i]
     return x
   
-  def jacobiSum(self, error, x0, limit = 100):
+  def jacobiSum(self, tolerance, x0, limit = 100):
     a = []
     b = []
-    e = 1
-    iterations = 0
     for i in range(len(self.a)):
       a.append(self.a[i][:-1])
       b.append(self.a[i][-1])
-    while True:
-      x1 = np.zeros(len(b))
-      for i in range(len(b)):
-        x1[i] = (b[i] - np.dot(a[i], x0) + a[i][i]*x0[i])/a[i][i]
-      e = max(abs(x1-x0))
-      if e < error or iterations > limit:
-        return x1
-      iterations += 1
-      x0 = x1
+    size = np.shape(a)
+    n = size[0]
+    m = size[1]
+    difference = np.ones(n, dtype=float)
+    error = np.max(difference)
+    X = np.copy(x0)
+    newX = np.copy(x0)
+
+    iteration = 0
+    while not(error <= tolerance or iteration > limit):
+
+      for i in range(0, n, 1):
+        newValue = b[i]
+        for j in range(0, m, 1):
+          if (i != j): # except diagonal of a
+            newValue = newValue - a[i, j] * X[j]
+        newValue = newValue / a[i, i]
+        newX[i] = newValue
+        difference = np.abs(newX - X)
+        error = np.max(difference)
+        X = np.copy(newX)
+        iteration = iteration + 1
+    X = np.transpose([X])
+    # Does not converge
+    if (iteration > limit):
+      X = iteration
+      print('Limit hit. Method did not converge')
+    return(X)
           
-  def jacobi(self, error, x0):
+  def jacobiMatrix(self, error, x0):
     a = []
     b = []
     for i in range(len(self.a)):
