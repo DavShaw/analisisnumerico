@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
+import sympy as sp
 from Matrix import Matrix
 import random
 matplotlib.use('Agg')
@@ -25,6 +26,20 @@ class Polys():
     b = ((Sy*Sx2)-(Sx*Sxy))/denominator
     m = ((n*Sxy)-(Sx*Sy))/denominator
     self.poly = lambda x: m*x + b
+    
+  def lagangeInterpolation(self):
+    x = [point[0] for point in self.points]
+    y = [point[1] for point in self.points]
+    xVar = sp.symbols('x')
+    n = len(x)
+    poly = 0
+    for i in range(n):
+      product = 1
+      for j in range(n):
+        if (i != j):
+          product *= (xVar-x[j])/(x[i]-x[j])
+      poly += product*y[i]
+    self.poly = sp.lambdify(xVar, poly)
     
   def graphData(self):
     x = [point[0] for point in self.points]
@@ -62,13 +77,31 @@ class Polys():
     plt.savefig('graph.png')
   
 if __name__ == "__main__":
-  data = [(0,0.120),(2,0.153), (3,0.170), (6,0.225), (7,0.260), (1,0.135), (4,0.200), (5,0.215), (8,0.280), (9,0.300), (10,0.320), (11,0.340), (12,0.360), (13,0.380), (14,0.400)]
-  p = Polys(data)
+  x = [1940, 1945, 1950, 1955, 1960, 1965, 1970, 1975, 1980, 1985, 1990]
+  y1 = [15000, 150000, 250000, 275000, 270000, 280000, 290000, 650000, 1200000, 1500000, 2750000]
+  y2 = [100000, 850000, 1330000, 2500000, 3000000, 3700000, 4400000, 46600000, 4800000, 4420000, 5000000]
+  pez = [(i,j) for i, j in zip(x, y1)]
+  cangrejo = [(i,j) for i, j in zip(x, y2)]
+  p = Polys(pez)
+  c = Polys(cangrejo)
+  p.lagangeInterpolation()
+  lagrange = p.poly
   p.minSqrtLinearRegression()
-  x = [d[0] for d in data]
-  y = [d[1] for d in data]
-  py = [p.evaluatePoly(n) for n in x]
+  linear = p.poly
   
-  plt.plot(x,y,".")
-  plt.plot(x,py, color="red")
-  plt.savefig("axd.png")
+  # GRAPH FOR LAGRANGE INTERPOLATION
+  
+  x_smooth = np.linspace(min(x), max(x), 1000)
+  y_smooth = [lagrange(i) for i in x_smooth]
+  
+  plt.plot(x_smooth, y_smooth, label='Lagrange Interpolation')
+  plt.plot(x, y1, 'ro')
+  plt.savefig('lagrange.png')
+  
+  # CLEAR PLOT
+  plt.clf()
+  
+  # GRAPH FOR MINIMUM SQUARES LINEAR REGRESSION
+  plt.plot(x, [linear(i) for i in x], label='Linear Regression')
+  plt.plot(x, y1, 'ro')
+  plt.savefig('linear.png')
