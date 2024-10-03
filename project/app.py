@@ -32,7 +32,7 @@ if __name__ == "__main__":
   buttonStop.setLogic(Logic)
   buttonStop.setAction('panicStop')
 
-  _thread.start_new_thread(Logic.monitorLevel, ())
+  _thread.start_new_thread(Logic.startProcess, ())
 
   while True:
     time.sleep(2)

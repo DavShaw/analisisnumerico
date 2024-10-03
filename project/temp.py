@@ -9,7 +9,7 @@ class TemperatureSensor:
     self.adc.atten(ADC.ATTN_11DB) 
     self.adc.width(ADC.WIDTH_12BIT)
 
-  def readTemperature(self):
+  def getTemperature(self):
     adcValue = self.adc.read()
     voltage = adcValue * 5.0 / 4095
     temperatureC = voltage * 100

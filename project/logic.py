@@ -35,10 +35,10 @@ class Logic:
     self.ledEmpty.off()
     self.ledStop.on()
 
-  def monitorLevel(self):
+  def startProcess(self):
     while True:
-      distance = self.ultrasonicSensor.printDistance()
-      temperature = self.temperatureSensor.readTemperature()
+      distance = self.ultrasonicSensor.getDistance()
+      temperature = self.temperatureSensor.getTemperature()
       print(f"Temperature: {temperature:.2f} °C")
       if temperature > DATA["tempMax"]:
         print("Temperature exceeds the limit! Stopping all processes...")

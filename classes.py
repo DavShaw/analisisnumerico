@@ -42,7 +42,7 @@ class UltrasonicSensor:
 
     return self.distanceM
 
-  def printDistance(self):
+  def getDistance(self):
     distance = self.measureDistance()
     if distance is not None:
       print(f"Distance: {(distance/100):.2f}m")
@@ -56,7 +56,7 @@ class TemperatureSensor:
     self.adc.atten(ADC.ATTN_11DB) 
     self.adc.width(ADC.WIDTH_12BIT)
 
-  def readTemperature(self):
+  def getTemperature(self):
     adcValue = self.adc.read()
     voltage = adcValue * 5.0 / 4095
     temperatureC = voltage * 100
@@ -91,10 +91,10 @@ class Logic:
     self.ledEmpty.off()
     self.ledStop.on()
 
-  def monitorLevel(self):
+  def startProcess(self):
     while True:
-      distance = self.ultrasonicSensor.printDistance()
-      temperature = self.temperatureSensor.readTemperature()
+      distance = self.ultrasonicSensor.getDistance()
+      temperature = self.temperatureSensor.getTemperature()
       print(f"Temperature: {temperature:.2f} °C")
       if temperature > DATA["tempMax"]:
         print("Temperature exceeds the limit! Stopping all processes...")
@@ -133,7 +133,7 @@ if __name__ == "__main__":
   buttonEmpty = Pulser(pinNum=DATA["buttonEmptyPin"], Logic=Logic, action='containerEmpty') 
   buttonStop = Pulser(pinNum=DATA["buttonStopPin"], Logic=Logic, action='panicStop')
 
-  _thread.start_new_thread(Logic.monitorLevel, ())
+  _thread.start_new_thread(Logic.startProcess, ())
 
   while True:
     time.sleep(2)

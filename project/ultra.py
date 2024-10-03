@@ -13,7 +13,7 @@ class UltrasonicSensor:
   def setEchoPin(self, echoPin):
     self.echo = Pin(echoPin, Pin.IN)
 
-  def measureDistance(self):
+  def __calculateDistance(self):
     self.trigger.value(1)
     time.sleep_us(10)
     self.trigger.value(0)
@@ -29,10 +29,9 @@ class UltrasonicSensor:
 
     return self.distanceM
 
-  def printDistance(self):
-    distance = self.measureDistance()
+  def getDistance(self):
+    distance = self.__calculateDistance()
     if distance is not None:
       print(f"Distance: {(distance/100)}m")
-    else:
-      print("Cannot get distance... Trying again.")
-    return distance
+      return distance
+    print("Cannot get distance... Trying again.")
