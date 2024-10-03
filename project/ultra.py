@@ -4,7 +4,7 @@ import time
 class UltrasonicSensor:
   def __init__(self):
     self.distanceM = 0 
-    self.calibrationFactor = 1  
+    self.calibrationFactor = 0.45 
     self.trigger.value(0)
 
   def setTriggerPin(self, triggerPin):
@@ -24,15 +24,15 @@ class UltrasonicSensor:
       print("ECHO TIMEOUT... Trying again.")
       self.distanceM = None
     else:
-      self.distanceM = (pulseDuration * 0.0343 / 2) * self.calibrationFactor
-      self.distanceM += 1
+      soundVelocity = 343
+      self.distanceM = (pulseDuration * soundVelocity / 2) * self.calibrationFactor
 
     return self.distanceM
 
   def printDistance(self):
     distance = self.measureDistance()
     if distance is not None:
-      print(f"Distance: {(distance/100):.2f}m")
+      print(f"Distance: {(distance/100)}m")
     else:
       print("Cannot get distance... Trying again.")
     return distance
