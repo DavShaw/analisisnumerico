@@ -2,7 +2,7 @@ import sympy as sp
 import json
 
 # This class has been made by David, some A.I. has made the documentation, to don't waste time on it.
-class NumericalDiff:
+class NumericalDifference:
   
   def diffWithTable(self, xi: float, table: dict, selectedH = 0):
     """
