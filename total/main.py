@@ -1,7 +1,11 @@
-from machine import Pin, time_pulse_us, ADC
-import _thread
+from machine import Pin
 import time
-
+import _thread
+from machine import Pin, time_pulse_us
+from machine import ADC, Pin
+import time
+from machine import Pin
+import time
 
 DATA = {
   "triggerPin": 27,
@@ -15,18 +19,24 @@ DATA = {
   "buttonStopPin": 17,
   "maxHeight": 40,
   "minHeight": 10,
-  "tempMax": 35
+  "tempMax": 20
 }
 
 class UltrasonicSensor:
-  def __init__(self, triggerPin, echoPin):
-    self.trigger = Pin(triggerPin, Pin.OUT)
-    self.echo = Pin(echoPin, Pin.IN)
+  def __init__(self):
+    self.trigger = Pin(0, Pin.OUT)
+    self.echo = Pin(0, Pin.IN)
     self.distanceM = 0 
-    self.calibrationFactor = 1  
+    self.calibrationFactor = 0.45 
     self.trigger.value(0)
 
-  def measureDistance(self):
+  def setTriggerPin(self, triggerPin):
+    self.trigger = Pin(triggerPin, Pin.OUT)
+  
+  def setEchoPin(self, echoPin):
+    self.echo = Pin(echoPin, Pin.IN)
+
+  def __calculateDistance(self):
     self.trigger.value(1)
     time.sleep_us(10)
     self.trigger.value(0)
@@ -37,21 +47,23 @@ class UltrasonicSensor:
       print("ECHO TIMEOUT... Trying again.")
       self.distanceM = None
     else:
-      self.distanceM = (pulseDuration * 0.0343 / 2) * self.calibrationFactor
-      self.distanceM += 1
+      soundVelocity = 0.0343
+      self.distanceM = (pulseDuration * soundVelocity / 2) * self.calibrationFactor
 
     return self.distanceM
 
   def getDistance(self):
-    distance = self.measureDistance()
+    distance = self.__calculateDistance()
     if distance is not None:
-      print(f"Distance: {(distance/100):.2f}m")
-    else:
-      print("Cannot get distance... Trying again.")
-    return distance
-
+      print(f"Distance: {(distance/100)}m")
+      return distance
+    print("Cannot get distance... Trying again.")
+    
 class TemperatureSensor:
-  def __init__(self, adcPin):
+  def __init__(self):
+    self.adc = None
+
+  def setAdcPin(self, adcPin):
     self.adc = ADC(Pin(adcPin))
     self.adc.atten(ADC.ATTN_11DB) 
     self.adc.width(ADC.WIDTH_12BIT)
@@ -61,17 +73,42 @@ class TemperatureSensor:
     voltage = adcValue * 5.0 / 4095
     temperatureC = voltage * 100
     return temperatureC
+  
 
+class Pulser:
+  def __init__(self):
+    self.lastTime = 0
+    self.debounceDelay = 200
+
+  def setAction(self, action):
+    self.action = action
+
+  def setPin(self, pinNum):
+    self.pin = Pin(pinNum, Pin.IN, Pin.PULL_UP)
+    self.pin.irq(trigger=Pin.IRQ_FALLING, handler=self.callback)
+
+  def setLogic(self, logic):
+    self.logic = logic
+
+  def callback(self):
+    currentTime = time.ticks_ms()
+    if currentTime - self.lastTime > self.debounceDelay:
+      getattr(self.Logic, self.action)()
+      self.lastTime = currentTime
 class Logic:
-  def __init__(self, ultrasonicSensor, temperatureSensor):
+  def __init__(self):
     self.ledFull = Pin(DATA["ledFullPin"], Pin.OUT)
     self.ledEmpty = Pin(DATA["ledEmptyPin"], Pin.OUT)
     self.ledStop = Pin(DATA["ledStopPin"], Pin.OUT)
-    self.ultrasonicSensor = ultrasonicSensor
-    self.temperatureSensor = temperatureSensor
     self.ledFull.off()
     self.ledEmpty.off()
     self.ledStop.off()
+
+  def setUltraSonicSensor(self, ultrasonicSensor):
+    self.ultrasonicSensor = ultrasonicSensor
+  
+  def setTemperatureSensor(self, temperatureSensor):
+    self.temperatureSensor = temperatureSensor
 
   def containerFill(self):
     print("Filling container...")
@@ -107,31 +144,33 @@ class Logic:
           self.ledEmpty.off()
           print(f"Min. Distance hit ({DATA["minHeight"]})")
       time.sleep(1) 
-
-class Pulser:
-  def __init__(self, pinNum, Logic, action):
-    self.pin = Pin(pinNum, Pin.IN, Pin.PULL_UP)
-    self.action = action
-    self.Logic = Logic
-    self.lastTime = 0
-    self.debounceDelay = 200
-    self.pin.irq(trigger=Pin.IRQ_FALLING, handler=self.callback)
-
-  def callback(self):
-    currentTime = time.ticks_ms()
-    if currentTime - self.lastTime > self.debounceDelay:
-      getattr(self.Logic, self.action)()
-      self.lastTime = currentTime
-
+      
 if __name__ == "__main__":
-  ultrasonicSensor = UltrasonicSensor(triggerPin=DATA["triggerPin"], echoPin=DATA["echoPin"])
-  temperatureSensor = TemperatureSensor(adcPin=DATA["temperatureSensorPin"])
+  ultrasonicSensor = UltrasonicSensor()
+  ultrasonicSensor.setEchoPin(DATA["echoPin"])
+  ultrasonicSensor.setTriggerPin(DATA["triggerPin"])
 
-  Logic = Logic(ultrasonicSensor, temperatureSensor)
+  temperatureSensor = TemperatureSensor()
+  temperatureSensor.setAdcPin(DATA["temperatureSensorPin"])
 
-  buttonFill = Pulser(pinNum=DATA["buttonFillPin"], Logic=Logic, action='containerFill') 
-  buttonEmpty = Pulser(pinNum=DATA["buttonEmptyPin"], Logic=Logic, action='containerEmpty') 
-  buttonStop = Pulser(pinNum=DATA["buttonStopPin"], Logic=Logic, action='panicStop')
+  Logic = Logic()
+  Logic.setUltraSonicSensor(ultrasonicSensor)
+  Logic.setTemperatureSensor(temperatureSensor)
+
+  buttonFill = Pulser() 
+  buttonFill.setPin(DATA["buttonFillPin"])
+  buttonFill.setLogic(Logic)
+  buttonFill.setAction('containerFill')
+
+  buttonEmpty = Pulser()
+  buttonEmpty.setPin(DATA["buttonEmptyPin"])
+  buttonEmpty.setLogic(Logic)
+  buttonEmpty.setAction('containerEmpty')
+
+  buttonStop = Pulser()
+  buttonStop.setPin(DATA["buttonStopPin"])
+  buttonStop.setLogic(Logic)
+  buttonStop.setAction('panicStop')
 
   _thread.start_new_thread(Logic.startProcess, ())
 

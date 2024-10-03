@@ -1,5 +1,5 @@
-from logic import Logic
 from pulser import Pulser
+from logic import Logic
 from ultra import UltrasonicSensor
 from temp import TemperatureSensor
 from data import DATA
