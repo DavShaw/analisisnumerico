@@ -3,10 +3,19 @@ import matplotlib.pyplot as plt
 import matplotlib
 import sympy as sp
 from Matrix import Matrix
-import random
 matplotlib.use('Agg')
 
 class Polys():
+  ScaleFunctions = {
+    1: lambda x,y: (x,y),
+    2: lambda x,y: (x,np.sqrt(y)),
+    3: lambda x,y: (x,np.log(y)),
+    4: lambda x,y: (x,1/np.log(y)),
+    5: lambda x,y: (x**2,y),
+    6: lambda x,y: (x**3,y),
+    7: lambda x,y: (np.log(x),y),
+    8: lambda x,y: (np.log(x),np.log(y)),
+    9: lambda x,y: (1/x,y)}
   
   def __init__(self, data):
     self.points = data
@@ -88,6 +97,7 @@ if __name__ == "__main__":
   lagrange = p.poly
   p.minSqrtLinearRegression()
   linear = p.poly
+  functions = p.ScaleFunctions
   
   # GRAPH FOR LAGRANGE INTERPOLATION
   
@@ -105,3 +115,75 @@ if __name__ == "__main__":
   plt.plot(x, [linear(i) for i in x], label='Linear Regression')
   plt.plot(x, y1, 'ro')
   plt.savefig('linear.png')
+  
+  # f1(x)
+  plt.clf()
+  f = functions[1]
+  x_smooth = np.linspace(min(x), max(x), 1000)
+  y_smooth = [f(i, lagrange(i)) for i in x_smooth]
+  plt.plot(x_smooth, y_smooth, label='f1(x)')
+  plt.savefig('f1.png')
+  
+  # f2(x)
+  plt.clf()
+  f = functions[2]
+  x_smooth = np.linspace(min(x), max(x), 1000)
+  y_smooth = [f(i, lagrange(i)) for i in x_smooth]
+  plt.plot(x_smooth, y_smooth, label='f2(x)')
+  plt.savefig('f2.png')
+  
+  # f3(x)
+  plt.clf()
+  f = functions[3]
+  x_smooth = np.linspace(min(x), max(x), 1000)
+  y_smooth = [f(i, lagrange(i)) for i in x_smooth]
+  plt.plot(x_smooth, y_smooth, label='f3(x)')
+  plt.savefig('f3.png')
+  
+  # f4(x)
+  plt.clf()
+  f = functions[4]
+  x_smooth = np.linspace(min(x), max(x), 1000)
+  y_smooth = [f(i, lagrange(i)) for i in x_smooth]
+  plt.plot(x_smooth, y_smooth, label='f4(x)')
+  plt.savefig('f4.png')
+  
+  # f5(x)
+  plt.clf()
+  f = functions[5]
+  x_smooth = np.linspace(min(x), max(x), 1000)
+  y_smooth = [f(i, lagrange(i)) for i in x_smooth]
+  plt.plot(x_smooth, y_smooth, label='f5(x)')
+  plt.savefig('f5.png')
+    
+  # f6(x)
+  plt.clf()
+  f = functions[6]
+  x_smooth = np.linspace(min(x), max(x), 1000)
+  y_smooth = [f(i, lagrange(i)) for i in x_smooth]
+  plt.plot(x_smooth, y_smooth, label='f6(x)')
+  plt.savefig('f6.png')
+  
+  # f7(x)
+  plt.clf()
+  f = functions[7]
+  x_smooth = np.linspace(min(x), max(x), 1000)
+  y_smooth = [f(i, lagrange(i)) for i in x_smooth]
+  plt.plot(x_smooth, y_smooth, label='f7(x)')
+  plt.savefig('f7.png')
+  
+  # f8(x)
+  plt.clf()
+  f = functions[8]
+  x_smooth = np.linspace(min(x), max(x), 1000)
+  y_smooth = [f(i, lagrange(i)) for i in x_smooth]
+  plt.plot(x_smooth, y_smooth, label='f8(x)')
+  plt.savefig('f8.png')
+  
+  # f9(x)
+  plt.clf()
+  f = functions[9]
+  x_smooth = np.linspace(min(x), max(x), 1000)
+  y_smooth = [f(i, lagrange(i)) for i in x_smooth]
+  plt.plot(x_smooth, y_smooth, label='f9(x)')
+  plt.savefig('f9.png')

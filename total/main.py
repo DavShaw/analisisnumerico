@@ -1,11 +1,6 @@
-from machine import Pin
 import time
 import _thread
-from machine import Pin, time_pulse_us
-from machine import ADC, Pin
-import time
-from machine import Pin
-import time
+from machine import Pin, time_pulse_us, ADC
 
 DATA = {
   "triggerPin": 27,
@@ -16,10 +11,11 @@ DATA = {
   "ledStopPin": 5,
   "buttonFillPin": 15,
   "buttonEmptyPin": 14,
-  "buttonStopPin": 17,
-  "maxHeight": 40,
+  "buttonStopPin": 19,
+  "containerMaxLvl": 100,
+  "maxHeight": 80,
   "minHeight": 10,
-  "tempMax": 20
+  "tempMax": 50
 }
 
 class UltrasonicSensor:
@@ -27,7 +23,7 @@ class UltrasonicSensor:
     self.trigger = Pin(0, Pin.OUT)
     self.echo = Pin(0, Pin.IN)
     self.distanceM = 0 
-    self.calibrationFactor = 0.45 
+    self.calibrationFactor = 1
     self.trigger.value(0)
 
   def setTriggerPin(self, triggerPin):
@@ -55,7 +51,7 @@ class UltrasonicSensor:
   def getDistance(self):
     distance = self.__calculateDistance()
     if distance is not None:
-      print(f"Distance: {(distance/100)}m")
+      print(f"Distance: {(distance)}cm")
       return distance
     print("Cannot get distance... Trying again.")
     
@@ -74,7 +70,6 @@ class TemperatureSensor:
     temperatureC = voltage * 100
     return temperatureC
   
-
 class Pulser:
   def __init__(self):
     self.lastTime = 0
@@ -90,10 +85,13 @@ class Pulser:
   def setLogic(self, logic):
     self.logic = logic
 
-  def callback(self):
+  def callback(self, a):
     currentTime = time.ticks_ms()
     if currentTime - self.lastTime > self.debounceDelay:
-      getattr(self.Logic, self.action)()
+      try:
+        getattr(self.logic, self.action)()
+      except Exception as e:
+        print(f"Error: {e}")
       self.lastTime = currentTime
 class Logic:
   def __init__(self):
@@ -115,7 +113,7 @@ class Logic:
     self.ledFull.on()
     self.ledEmpty.off()
     self.ledStop.off()
-
+    
   def containerEmpty(self):
     print("Emptying container...")
     self.ledFull.off()
@@ -130,20 +128,24 @@ class Logic:
 
   def startProcess(self):
     while True:
-      distance = self.ultrasonicSensor.getDistance()
-      temperature = self.temperatureSensor.getTemperature()
-      print(f"Temperature: {temperature:.2f} °C")
-      if temperature > DATA["tempMax"]:
-        print("Temperature exceeds the limit! Stopping all processes...")
-        self.stop()
-      if distance is not None:
-        if distance >= DATA["maxHeight"]:
-          self.ledFull.off()
-          print(f"Max. Distance hit ({DATA["maxHeight"]})")
-        if distance <= DATA["minHeight"]:
-          self.ledEmpty.off()
-          print(f"Min. Distance hit ({DATA["minHeight"]})")
-      time.sleep(1) 
+      try:
+        distance = self.ultrasonicSensor.getDistance()
+        temperature = self.temperatureSensor.getTemperature()
+        print(f"Temperature: {temperature:.2f} °C")
+        if temperature > DATA["tempMax"]:
+          print("Temperature exceeds the limit! Stopping all processes...")
+          self.panicStop()
+        if distance is not None:
+          waterLevel = (DATA["containerMaxLvl"] - distance)
+          if waterLevel > DATA["maxHeight"]: # HERE (water level) MAX
+            self.ledFull.off()
+            print(f"Max. Water level hit ({waterLevel})")
+          if waterLevel < DATA["minHeight"]: # HERE (water level) MIN
+            self.ledEmpty.off()
+            print(f"Min. Water level hit ({waterLevel})")
+        time.sleep(1)
+      except Exception as e:
+        print(f"Error: {e}")
       
 if __name__ == "__main__":
   ultrasonicSensor = UltrasonicSensor()
